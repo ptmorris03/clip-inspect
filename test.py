@@ -5,12 +5,13 @@ import torch.nn as nn
 from clip_inspect import get_grid, load_model, get_device, CLIPVisualResblockFF
 
 
+model_path = Path("/data/clip/models/ViT-B-32.pt")
+model = load_model(model_path)
+
+block = CLIPVisualResblockFF(model, 0)
+
+
 def test():
-    model_path = Path("/data/clip/models/ViT-B-32.pt")
-    model = load_model(model_path)
-
-    block = CLIPVisualResblockFF(model, 0)
-
     grid = get_grid(100)
 
     dims = [0, 1]
@@ -19,12 +20,7 @@ def test():
         print(name, tensor.shape)
 
 def test_gpu():
-    model_path = Path("/data/clip/models/ViT-B-32.pt")
-    model = load_model(model_path)
-
     device = get_device()
-
-    block = CLIPVisualResblockFF(model, 0)
     block = block.to(device)
 
     grid = get_grid(100)
@@ -36,12 +32,8 @@ def test_gpu():
         print(name, tensor.shape, tensor.device)
 
 def test_gpu_parallel():
-    model_path = Path("/data/clip/models/ViT-B-32.pt")
-    model = load_model(model_path)
-
     device = get_device()
-
-    block = CLIPVisualResblockFF(model, 0)
+    
     block = nn.DataParallel(block)
     block = block.to(device)
 
@@ -54,12 +46,8 @@ def test_gpu_parallel():
         print(name, tensor.shape, tensor.device)
 
 def test_gpu_grad():
-    model_path = Path("/data/clip/models/ViT-B-32.pt")
-    model = load_model(model_path)
-
     device = get_device()
 
-    block = CLIPVisualResblockFF(model, 0)
     block = nn.DataParallel(block)
     block = block.to(device)
 
