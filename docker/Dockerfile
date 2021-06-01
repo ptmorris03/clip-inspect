@@ -35,7 +35,8 @@ RUN pip3 install \
     scikit-learn \ 
     h5py \
     ftfy \
-    regex
+    regex \
+    click
 
 RUN pip3 install \
     --use-deprecated=legacy-resolver \
