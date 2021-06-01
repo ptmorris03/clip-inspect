@@ -88,9 +88,11 @@ class CLIPVisualResblockFF(nn.Module):
         if in_project:
             input = self.components(input, in_dims)
             store(tensors, "in_project", input, return_keys)
+            
+        out = input
 
         if in_norm:
-            out = self.block.ln_2(input)
+            out = self.block.ln_2(out)
             store(tensors, "in_norm", out, return_keys)
 
         if mlp:
