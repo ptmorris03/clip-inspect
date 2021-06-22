@@ -56,11 +56,14 @@ class Components(nn.Module):
         return torch.matmul(emb, self.components[dims].T)
 
 
-class CLIPVisualResblockFF(nn.Module):
-    def __init__(self, model, block_idx: int):
-        super(CLIPVisualResblockFF, self).__init__()
+class CLIPResblockFF(nn.Module):
+    def __init__(self, model, block_idx: int, visual: bool = True):
+        super(CLIPResblockFF, self).__init__()
 
-        self.block = model.visual.transformer.resblocks[block_idx]
+        if visual:
+            model = model.visual
+            
+        self.block = model.transformer.resblocks[block_idx]
         self.components = Components(self.block.mlp.c_fc.weight)
 
     def forward(
