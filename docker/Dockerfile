@@ -37,7 +37,8 @@ RUN pip3 install \
     ftfy \
     regex \
     click \ 
-    opencv-python
+    opencv-python \
+    einops
 
 RUN pip3 install \
     --use-deprecated=legacy-resolver \
