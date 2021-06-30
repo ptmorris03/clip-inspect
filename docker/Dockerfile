@@ -36,13 +36,14 @@ RUN pip3 install \
     h5py \
     ftfy \
     regex \
-    click
+    click \ 
+    opencv-python
 
 RUN pip3 install \
     --use-deprecated=legacy-resolver \
-    torch==1.8.1+cu111 \
-    torchvision==0.9.1+cu111 \
-    torchaudio==0.8.1 \
+    torch==1.9.0+cu111 \
+    torchvision==0.10.0+cu111 \
+    torchaudio==0.9.0 \
     -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN pip3 install \
