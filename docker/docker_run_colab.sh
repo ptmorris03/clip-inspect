@@ -5,7 +5,6 @@ docker run \
     --shm-size=16G \
     --gpus all \
     -p 8081:8081 \
-    -v /media/mpcrpaul/fastdata/colab:/opt/colab \
-    -v $(pwd):/code \
+    -v $(pwd):/opt/colab \
     colab-local-runtime
 
