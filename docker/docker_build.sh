@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker build -t colab-local-runtime:latest -f docker/Dockerfile .
+docker build -t clip-inspect:jax-base -f docker/Dockerfile .
 

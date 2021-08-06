@@ -1,0 +1,14 @@
+ftfy
+regex
+tqdm
+numpy
+scipy
+matplotlib
+ipython
+jupyter
+sympy
+nose
+scikit-learn
+opencv-python
+einops
+torchvision
