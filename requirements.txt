@@ -12,3 +12,4 @@ scikit-learn
 opencv-python
 einops
 torchvision
+dm-haiku

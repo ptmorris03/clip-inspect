@@ -1,2 +1,2 @@
-from .model import load_model, get_device
-from .inspect import get_grid, Components, CLIPResblockFF
+from .clip_weights import __dict__
+from .clip_model import __dict__
