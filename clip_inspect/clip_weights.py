@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import haiku as hk
 
 
-def build_model(state_dict: dict):
+def model_info(state_dict: dict):
     vit = "visual.proj" in state_dict
 
     if vit:
@@ -39,24 +39,20 @@ def build_model(state_dict: dict):
         context_length, vocab_size, transformer_width, transformer_heads, transformer_layers
     )
 
+
+def clean_state_dict(state_dict: dict):
     for key in ["input_resolution", "context_length", "vocab_size"]:
         if key in state_dict:
             del state_dict[key]
+    return state_dict
 
-    #convert_weights(model)
-    #model.load_state_dict(state_dict)
-    #return model.eval()
-
-# ^^^ he is an impostor!
-def build_model(state_dict):
-    for key in state_dict.keys():
-        print(key, state_dict[key].shape)
 
 def load(model_name, base_path="/clip-inspect/weights/"):
     path = Path(base_path, F"{Path(model_name).stem}.pt")
     state_dict = torch.jit.load(path, map_location="cpu").eval().state_dict()
     #model = model.state_dict()
     #state_dict = jnp.load(Path(base_path, F"{Path(model_name).stem}.pt"), allow_pickle=True)
-    build_model(state_dict)
+    model_info(state_dict)
+    state_dict = clean_state_dict(state_dict)
 
     return state_dict
