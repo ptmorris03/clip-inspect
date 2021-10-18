@@ -1,7 +1,9 @@
 import jax.numpy as jnp
 import haiku as hk
 import jax
+from jax import jit
 from functools import partial
+from sklearn.decomposition import PCA
 
 
 ##TEMPLATE
@@ -83,7 +85,7 @@ class LayerNorm(_CLIPModule):
         return params
 
 
-@jax.jit
+@jit
 def QuickGELU(input):
     return input * jax.nn.sigmoid(1.702 * input)
 
@@ -92,7 +94,25 @@ class MLP(_CLIPModule):
     def __init__(self, *args, **kwargs):
         super(MLP, self).__init__(*args, **kwargs)
 
+        first_weights = self.state_dict[self.param_key + ".mlp.c_fc.weight"].numpy()
+        pca = PCA().fit(first_weights)
+        self.pca = jax.device_put(pca.components_)
+
         self.ln = LayerNorm(self.state_dict, self.param_key, name=".ln_2")
+
+    @property
+    def in_project(self):
+        @jit
+        def from_pca(x):
+            n_components = x.shape[-1]
+            return jnp.matmul(x, self.pca[:n_components])
+        return from_pca
+
+    @property
+    def out_project(self, n_components=3):
+        @jit
+        def to_pca(x):
+            return jnp.matmul(x, self.pca[:n_components].T)
 
     @property
     def input_shape(self):

@@ -9,5 +9,5 @@ from functools import partial
 state_dict, info = load("ViT-B-32")
 mlp = MLP(state_dict, "transformer.resblocks.0")
 points = random_points(mlp.prng_key, 1000, 512)
-print(info)
+points = vmap(mlp.in_project)(points)
 print(jnp.linalg.norm(vmap(jit(mlp.forward))(points), axis=-1))
