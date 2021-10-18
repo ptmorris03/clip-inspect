@@ -6,11 +6,11 @@ from functools import partial
 
 ##TEMPLATE
 class _CLIPModule:
-    def __init__(self, state_dict, parent_key, name=""):
+    def __init__(self, state_dict, parent_key, name="", rng_key=4):
         ##CALL super(ModuleName, self).__init__(*args, **kwargs)
         self.state_dict = state_dict
         self.param_key = parent_key + name
-        self.rng = jax.random.PRNGKey(4)
+        self.rng = jax.random.PRNGKey(rng_key)
         self.dtype = jnp.float32
         self.name = name
 
@@ -107,7 +107,7 @@ class MLP(_CLIPModule):
                 activation=QuickGELU
             )(norm)
 
-            return out + input
+            return out
         return fn
 
     def steal_from_state_dict(self, params):
