@@ -6,11 +6,11 @@ from functools import partial
 
 ##TEMPLATE
 class _CLIPModule:
-    def __init__(self, state_dict, parent_key, name="", rng_key=4):
+    def __init__(self, state_dict, parent_key, name="", prng_key=4):
         ##CALL super(ModuleName, self).__init__(*args, **kwargs)
         self.state_dict = state_dict
         self.param_key = parent_key + name
-        self.rng = jax.random.PRNGKey(rng_key)
+        self.prng_key = jax.random.PRNGKey(prng_key)
         self.dtype = jnp.float32
         self.name = name
 
@@ -37,7 +37,7 @@ class _CLIPModule:
     def random_params(self):
         init_tensor = jnp.zeros(self.input_shape, dtype=self.dtype)
         init_fn = hk.transform(self.module).init
-        params = init_fn(self.rng, init_tensor)
+        params = init_fn(self.prng_key, init_tensor)
         return params
 
     @property
