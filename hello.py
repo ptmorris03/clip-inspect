@@ -1,14 +1,13 @@
-import clip_inspect.weights as clip_weights
-import clip_inspect.model as clip_model
-import numpy as np
+from clip_inspect.weights import load
+from clip_inspect.model import MLP
+from clip_inspect.inspect import random_points
+import jax.numpy as jnp
+from jax import vmap, jit
 from functools import partial
 
-print(dir(clip_weights))
 
-state_dict = clip_weights.load("ViT-B-32")
-mlp = clip_model.MLP(state_dict, "transformer.resblocks.0")
-print("hi here")
-#print(mlp.params)
-print(mlp.forward(np.zeros(512)))
-
-#state_dict = clip_weights.load("ViT-B-16")
+state_dict, info = load("ViT-B-32")
+mlp = MLP(state_dict, "transformer.resblocks.0")
+points = random_points(mlp.prng_key, 1000, 512)
+print(info)
+print(jnp.linalg.norm(vmap(jit(mlp.forward))(points), axis=-1))
