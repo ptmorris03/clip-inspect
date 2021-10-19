@@ -42,13 +42,14 @@ def loop(f, n):
     return partial(jax.lax.fori_loop, 0, n, _f)
 
 
+def _burn_arg(x):
+        return _f(x)[1]
+
 def loop_collect(f, n, collect_f):
     def _f(x, _):
         y = f(x)
         return y, collect_f(y)
     _f = partial(jax.lax.scan, _f, xs=None, length=n)
-    def _burn_arg(x):
-        return _f(x)[1]
     return _burn_arg
 
 
@@ -57,6 +58,4 @@ def loop_collect_residual(f, n, collect_f):
         y = f(x)
         return y + x, collect_f(y)
     _f = partial(jax.lax.scan, _f, xs=None, length=n)
-    def _burn_arg(x):
-        return _f(x)[1]
     return _burn_arg
