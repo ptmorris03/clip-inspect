@@ -13,3 +13,4 @@ opencv-python
 einops
 torchvision
 dm-haiku
+scikit-image
