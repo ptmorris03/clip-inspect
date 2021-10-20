@@ -18,6 +18,20 @@ def residual(f):
     return _residual
 
 
+def collect(f, collect_f):
+    def _collect(x):
+        y = f(x)
+        return y, collect_f(y)
+    return _collect
+
+
+def collect_residual(f, collect_f):
+    def _collect_residual(x, _):
+        y = f(x)
+        return y + x, collect_f(y)
+    return _collect_residual
+
+
 jacobian = jacfwd
 
 
