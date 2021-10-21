@@ -26,7 +26,7 @@ def collect(f, collect_f):
 
 
 def collect_residual(f, collect_f):
-    def _collect_residual(x, _):
+    def _collect_residual(x):
         y = f(x)
         return y + x, collect_f(y)
     return _collect_residual
