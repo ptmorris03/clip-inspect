@@ -113,6 +113,7 @@ class MLP(_CLIPModule):
         @jit
         def to_pca(x):
             return jnp.matmul(x, self.pca[:n_components].T)
+        return to_pca
 
     @property
     def input_shape(self):
