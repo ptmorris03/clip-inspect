@@ -108,7 +108,7 @@ class MLP(_CLIPModule):
             return jnp.matmul(x, self.pca[:n_components])
         return from_pca
 
-    @property
+
     def out_project(self, n_components=3):
         @jit
         def to_pca(x):
