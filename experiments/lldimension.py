@@ -25,7 +25,7 @@ f_forward = pmap(vmap(jit(collect_residual(mlp.forward, mlp.out_project(n_compon
 f_jac = pmap(vmap(jit(jacobian(mlp.forward))))
 
 def lyapunov_dimension(J):
-    eigvals = jnp.flip(jnp.sort(jnp.abs(jnp.linalg.eigvals(J))))
+    eigvals = jnp.flip(jnp.sort(jnp.linalg.eigvals(J).real))
     cumsum = jnp.cumsum(eigvals)
     j = (cumsum >= 0).sum()
     return j + cumsum[j - 1] / jnp.abs(eigvals[j])
