@@ -4,7 +4,10 @@ from itertools import product
 
 
 def random_points(prng_key, count, dims):
-    return jax.random.normal(prng_key, (count, dims))
+    shape = (count, dims)
+    if type(count) in [tuple, list]:
+        shape = (*count, dims)
+    return jax.random.normal(prng_key, shape)
 
 
 def mesh_line1d(density=300, limit=1):
