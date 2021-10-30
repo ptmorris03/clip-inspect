@@ -19,7 +19,7 @@ def angle_nd(vector):
 
 
 def polar_nd(vector):
-    return angle_nd(vector), magnitude(vector)
+    return jnp.stack([angle_nd(vector), magnitude(vector)], axis=-1)
 
 
 ##HUE HISTOGRAM CLASS
