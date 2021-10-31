@@ -14,9 +14,10 @@ from pathlib import Path
 import numpy as np
 
 
-n_points = 100
+repeats = 50
+n_points = 1
 pre_steps = 1000
-steps = 10000
+steps = 100000
 layer = 7
 
 
@@ -125,56 +126,59 @@ class Multiple:
 #### ITERATE
 f_exp = pmap(vmap(jit(lyapunov_exponents)))
 
-points = random_points(mlp.prng_key, (2, n_points), 512)
-exponents, dimension, coords = f_exp(points)
+key = mlp.prng_key
+for r_idx in tqdm(range(repeats)):
+    key, subkey = jax.random.split(key)
+    points = random_points(subkey, (2, n_points), 512)
+    exponents, dimension, coords = f_exp(points)
 
-exponents = exponents.reshape(2 * n_points, steps, 512)
-dimension = dimension.reshape(2 * n_points, steps)
-coords = coords.reshape(2 * n_points, steps, 2)
+    exponents = exponents.reshape(2 * n_points, steps, 512)
+    dimension = dimension.reshape(2 * n_points, steps)
+    coords = coords.reshape(2 * n_points, steps, 2)
 
 
-#### PLOT AND SAVE
-plt.rc('font', size=20)
-out_path = Path(F"/code/output/exponent_plots{layer}/")
-out_path.mkdir(exist_ok=True)
-for i in tqdm(range(2 * n_points)):
-    fig = plt.figure(figsize=(18, 18), dpi=120)
-    
-    ax = fig.add_subplot(3, 3, (1, 2))
-    ax.set_title("Lyapunov Exponents")
-    ax.set_ylabel("e^λ")
-    for e in range(512):
-        color = plt.cm.gist_rainbow(e / 512)
-        ax.plot(jnp.exp(exponents[i,:,e]), color=color)
+    #### PLOT AND SAVE
+    plt.rc('font', size=20)
+    out_path = Path(F"/code/output/exponent_plots{layer}/")
+    out_path.mkdir(exist_ok=True)
+    for i in tqdm(range(2 * n_points), leave=False):
+        fig = plt.figure(figsize=(18, 18), dpi=120)
+        
+        ax = fig.add_subplot(3, 3, (1, 2))
+        ax.set_title("Lyapunov Exponents")
+        ax.set_ylabel("e^λ")
+        for e in range(512):
+            color = plt.cm.gist_rainbow(e / 512)
+            ax.plot(jnp.exp(exponents[i,:,e]), color=color)
 
-    ax = fig.add_subplot(3, 3, 3)
-    ax.set_title(F"Dimension ({dimension[i,-1]:.02f})")
-    ax.plot(dimension[i])
+        ax = fig.add_subplot(3, 3, 3)
+        ax.set_title(F"Dimension ({dimension[i,-1]:.02f})")
+        ax.plot(dimension[i])
 
-    ax = fig.add_subplot(3, 3, (4, 9))
-    ax.set_title(F"Attractor (CLIP Text Layer {layer})")
-    ax.set_xlabel("Magnitude ~ 2-Norm")
-    ax.set_ylabel("Angle ~ Circular Mean of Softmax(Abs(point))")
-    ax.set_ylim(-np.pi, np.pi)
-    ax.yaxis.set_major_locator(plt.MultipleLocator(np.pi / 2))
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(multiple_formatter()))
+        ax = fig.add_subplot(3, 3, (4, 9))
+        ax.set_title(F"Attractor (CLIP Text Layer {layer})")
+        ax.set_xlabel("Magnitude ~ 2-Norm")
+        ax.set_ylabel("Angle ~ Circular Mean of Softmax(Abs(point))")
+        ax.set_ylim(-np.pi, np.pi)
+        ax.yaxis.set_major_locator(plt.MultipleLocator(np.pi / 2))
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(multiple_formatter()))
 
-    scatter = ax.scatter(
-        coords[i,:,1], 
-        coords[i,:,0], 
-        c=np.linspace(0, steps, steps),
-        s=5,
-        cmap='gist_rainbow'
-    )
-    cax = make_axes_locatable(ax).append_axes('right', size='5%', pad=0.05)
-    cbar = fig.colorbar(scatter, cax=cax, orientation='vertical')
+        scatter = ax.scatter(
+            coords[i,:,1], 
+            coords[i,:,0], 
+            c=np.linspace(0, steps, steps),
+            s=.1,
+            cmap='gist_rainbow'
+        )
+        cax = make_axes_locatable(ax).append_axes('right', size='5%', pad=0.05)
+        cbar = fig.colorbar(scatter, cax=cax, orientation='vertical')
 
-    fig.tight_layout()
-    fig.savefig(
-        Path(out_path, F"point{i:06d}.png"), 
-        dpi='figure', 
-        transparent=False, 
-        pad_inches=0
-    )
-    plt.close(fig)
+        fig.tight_layout()
+        fig.savefig(
+            Path(out_path, F"point{(r_idx * 2 * n_points) + i:06d}.png"), 
+            dpi='figure', 
+            transparent=False, 
+            pad_inches=0
+        )
+        plt.close(fig)
     
