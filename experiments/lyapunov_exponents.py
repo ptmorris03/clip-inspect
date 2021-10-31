@@ -9,12 +9,12 @@ from tqdm import tqdm
 from jax import vmap, pmap, jit
 from functools import partial
 import matplotlib.pyplot as plt
-from mlp_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from pathlib import Path
 import numpy as np
 
 
-n_points = 10
+n_points = 100
 pre_steps = 1000
 steps = 10000
 layer = 7
@@ -27,7 +27,6 @@ mlp = MLP(state_dict, F"transformer.resblocks.{layer-1}")
 
 #### THESE FUNCTIONS DO ALL THE WORK
 def lyapunov_step(point, circle):
-    point, circle = inputs
     point = mlp.forward(point)
     J = jacobian(mlp.forward)(point)
 
@@ -42,7 +41,14 @@ def lyapunov_dimension(exponents):
     sorted = jnp.flip(jnp.sort(exponents))
     sums = jnp.cumsum(sorted)
     j = (sums >= 0).sum()
-    return j + sums[j - 1] / jnp.abs(sorted[j])
+    return jax.lax.cond(
+        j == 0,
+        lambda _: 0.0,
+        lambda _: _,
+        operand=j + sums[j - 1] / jnp.abs(sorted[j])
+    )
+    #dimension = j + sums[j - 1] / jnp.abs(sorted[j])
+    #return max(0, dimension)
 
 
 def lyapunov_exponents(point):
@@ -81,7 +87,7 @@ def multiple_formatter(denominator=2, number=np.pi, latex='\pi'):
         return a
     def _multiple_formatter(x, pos):
         den = denominator
-        num = np.int(np.rint(den*x/number))
+        num = int(np.rint(den*x/number))
         com = gcd(num,den)
         (num,den) = (int(num/com),int(den/com))
         if den==1:
@@ -136,16 +142,17 @@ for i in tqdm(range(2 * n_points)):
     
     ax = fig.add_subplot(3, 3, (1, 2))
     ax.set_title("Lyapunov Exponents")
+    ax.set_ylabel("e^λ")
     for e in range(512):
         color = plt.cm.gist_rainbow(e / 512)
-        ax.plot(exponents[i,:,e], color=color)
+        ax.plot(jnp.exp(exponents[i,:,e]), color=color)
 
     ax = fig.add_subplot(3, 3, 3)
     ax.set_title(F"Dimension ({dimension[i,-1]:.02f})")
     ax.plot(dimension[i])
 
     ax = fig.add_subplot(3, 3, (4, 9))
-    ax.set_title("Attractor (CLIP Text Layer {layer})")
+    ax.set_title(F"Attractor (CLIP Text Layer {layer})")
     ax.set_xlabel("Magnitude ~ 2-Norm")
     ax.set_ylabel("Angle ~ Circular Mean of Softmax(Abs(point))")
     ax.set_ylim(-np.pi, np.pi)
@@ -155,7 +162,9 @@ for i in tqdm(range(2 * n_points)):
     scatter = ax.scatter(
         coords[i,:,1], 
         coords[i,:,0], 
-        c=np.linspace(0, steps, steps)
+        c=np.linspace(0, steps, steps),
+        s=5,
+        cmap='gist_rainbow'
     )
     cax = make_axes_locatable(ax).append_axes('right', size='5%', pad=0.05)
     cbar = fig.colorbar(scatter, cax=cax, orientation='vertical')
