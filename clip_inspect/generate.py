@@ -28,6 +28,19 @@ def mesh_plane2d(density=300, limit=1):
     return jnp.stack(jnp.meshgrid(*points), axis=-1)
 
 
+def mesh_sphere2d(density=300, radius=1):
+    angle1, angle2 = jnp.mgrid[
+        -jnp.pi:jnp.pi:n_points + 1j, 
+        -1:1:n_points + 1j
+    ]
+    angle2 = jnp.arccos(angle2)
+    return jnp.stack([
+        radius * jnp.cos(angle1) * jnp.sin(angle2),
+        radius * jnp.sin(angle1) * jnp.sin(angle2),
+        radius * jnp.cos(angle2)
+    ], axis=-1)
+
+
 def stratified_iterator(tensor, num_batches, axis=None):
     if axis is None:
         axis = list(range(len(tensor.shape) - 1))
