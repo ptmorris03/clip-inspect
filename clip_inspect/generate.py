@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import jax
+import numpy as np
 from itertools import product
 
 
@@ -29,15 +30,15 @@ def mesh_plane2d(density=300, limit=1):
 
 
 def mesh_sphere2d(density=300, radius=1):
-    angle1, angle2 = jnp.mgrid[
-        -jnp.pi:jnp.pi:density + 1j, 
+    angle1, angle2 = np.mgrid[
+        -np.pi:np.pi:density + 1j, 
         -1:1:density + 1j
     ]
-    angle2 = jnp.arccos(angle2)
-    return jnp.stack([
-        radius * jnp.cos(angle1) * jnp.sin(angle2),
-        radius * jnp.sin(angle1) * jnp.sin(angle2),
-        radius * jnp.cos(angle2)
+    angle2 = np.arccos(angle2)
+    return np.stack([
+        radius * np.cos(angle1) * np.sin(angle2),
+        radius * np.sin(angle1) * np.sin(angle2),
+        radius * np.cos(angle2)
     ], axis=-1)
 
 
