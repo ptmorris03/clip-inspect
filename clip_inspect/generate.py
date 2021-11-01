@@ -30,8 +30,8 @@ def mesh_plane2d(density=300, limit=1):
 
 def mesh_sphere2d(density=300, radius=1):
     angle1, angle2 = jnp.mgrid[
-        -jnp.pi:jnp.pi:n_points + 1j, 
-        -1:1:n_points + 1j
+        -jnp.pi:jnp.pi:density + 1j, 
+        -1:1:density + 1j
     ]
     angle2 = jnp.arccos(angle2)
     return jnp.stack([
