@@ -2,7 +2,7 @@ from clip_inspect.weights import load
 from clip_inspect.model import MLP
 from clip_inspect.generate import random_points
 from clip_inspect.transforms import collect, vnewton, jacobian, residual, collect_residual
-from clip_inspect.inspect import norm01, axis_color
+from clip_inspect.inspect import norm01, polar_nd
 import jax.numpy as jnp
 import jax
 from tqdm import tqdm
@@ -17,19 +17,19 @@ n_accum = 10
 n_points = 4000
 pre_steps = 1000
 steps = 10000
-layer = 10
+layer = 7
 
-hist_bins = [1920, 1080]
+hist_bins = [1080, 1920]
 
 #for layer 7
 #hist_range = [[3.15, 4.78], [0.632, 0.705]]
-hist_range = [[2, 22], [0, 1]]
+hist_range = [[-np.pi, np.pi], [3, 7]]
 
 state_dict, info = load("ViT-B-32", base_path="/code/weights/")
 mlp = MLP(state_dict, F"transformer.resblocks.{layer-1}")
 
 def f_collect(x):
-    return jnp.linalg.norm(x, axis=-1), axis_color(x)
+    return polar_nd(x)
 
 f_in = pmap(vmap(mlp.in_project))
 f_forward = pmap(vmap(jit(collect(mlp.forward, f_collect))))
@@ -65,17 +65,16 @@ for a_idx in tqdm(range(n_accum)):
     points = points.reshape(2, n_points, 512)
     points = f_in(points)
     for s_idx in tqdm(range(pre_steps), leave=False):
-        points, (out_norm, out_axis) = f_forward(points)
+        points, coords = f_forward(points)
     for s_idx in tqdm(range(steps), leave=False):
-        points, (out_norm, out_axis) = f_forward(points)
+        points, coords = f_forward(points)
         #J = f_jac(points).reshape(2 * n_points, 512, 512)
         #d = f_lldimension(J)
 
-        out[:,s_idx,0] = out_norm.reshape(-1)
-        out[:,s_idx,1] = out_axis.reshape(-1)
+        out[:,s_idx,:] = coords.reshape(-1, 2)
     out = out.reshape(2, -1, 1000, steps, 2)
 
-    print(out.reshape(-1,2).min(axis=0), out.reshape(-1,2).max(axis=0))
+    #print(out.reshape(-1,2).min(axis=0), out.reshape(-1,2).max(axis=0))
 
     _hist = batch_hist2d(out).sum(axis=0)
     if hist is None:
@@ -83,7 +82,7 @@ for a_idx in tqdm(range(n_accum)):
     else:
         hist += _hist
 
-hist_norm = norm01(jnp.maximum(0, jnp.log(hist.T + 1e-9)))
+hist_norm = norm01(jnp.maximum(0, jnp.log(hist + 1e-9)))
 im = (plt.cm.inferno(hist_norm)[...,:3] * 255.99).astype(np.uint8)
 im = Image.fromarray(im)
 im.save(F"/code/output/map_attractor_layer{layer}.png")
