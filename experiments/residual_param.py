@@ -67,7 +67,7 @@ def f2(point, alpha):
     return hist
 
 alphas = jnp.linspace(0, 1, param_steps)
-for frame_idx, alpha in tqdm(enumerate(alphas)):
+for frame_idx, alpha in enumerate(tqdm(alphas)):
     #### RUN
     points = random_points(mlp.prng_key, n_points, 512)
     coords = np.zeros((n_points * steps, 2))
