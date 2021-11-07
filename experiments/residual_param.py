@@ -123,7 +123,7 @@ for frame_idx, alpha in tqdm(enumerate(alphas)):
     out_path.mkdir(exist_ok=True, parents=True)
     plt.xlabel("Magnitude (2-Norm)")
     plt.ylabel("Angle (Softmax Axis Circular Mean)")
-    plt.title(F"Histogram of f(x(t))   ___   x(t+1) = f(x(t)) + α * x(t)   ___   α = {alpha:0.06f}")
+    plt.title(F"Histogram of f(x(t))     |     x(t+1) = f(x(t)) + α * x(t)     |     α = {alpha:0.04f}")
     plt.tight_layout()
     fig.savefig(Path(out_path, F"{frame_idx:06d}.png"), dpi=120, pad_inches=0.0)
     plt.close()
