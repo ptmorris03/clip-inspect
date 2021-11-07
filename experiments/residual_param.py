@@ -15,9 +15,9 @@ import numpy as np
 from PIL import Image
 import os
 
-param_steps = 100
+param_steps = 50
 n_points = 1000
-pre_steps = 2
+pre_steps = 1000
 steps = 1000
 layer = 7
 
@@ -28,17 +28,28 @@ mlp = MLP(state_dict, F"transformer.resblocks.{layer-1}")
 
 
 #### FUNCTIONS
-def forward_residual_param(f, alpha):
-    def _forward(x):
-        return f(x) + alpha * x
-    return _forward
+def residual_param(f, alpha):
+    def _f(x):
+        y = f(x)
+        return y + alpha * x
+    return _f
 
 
-def get_function(param_fn):
+def loop_collect_residual_param(f, n, alpha, collect_f):
+    def _f(x, _):
+        y = f(x)
+        return y + alpha * x, collect_f(y)
+    _f = partial(jax.lax.scan, _f, xs=None, length=n)
+    def _burn_arg(x):
+        return _f(x)[1]
+    return _burn_arg
+
+
+def get_function(alpha):
     def _f(point):
         point = mlp.in_project(point)
-        point = loop(param_fn, pre_steps)(point)
-        return loop_collect(param_fn, steps, polar_nd)(point)
+        point = loop(residual_param(mlp.forward, alpha), pre_steps)(point)
+        return loop_collect_residual_param(mlp.forward, steps, alpha, polar_nd)(point)
     return pmap(vmap(jit(_f)))
 
 alphas = jnp.linspace(0, 1, param_steps)
@@ -48,8 +59,7 @@ for frame_idx, alpha in tqdm(enumerate(alphas)):
     coords = np.zeros((n_points, steps, 2))
     batch = points.reshape(2, -1, 512)
 
-    param_fn = forward_residual_param(mlp.forward, alpha)
-    f = get_function(param_fn)
+    f = get_function(alpha)
     coords[:] = f(batch).reshape(n_points, steps, 2)
 
 
@@ -65,6 +75,7 @@ for frame_idx, alpha in tqdm(enumerate(alphas)):
         )
     out_path = Path(F"/code/output/residual_param/layer{layer}/")
     out_path.mkdir(exist_ok=True, parents=True)
-    plt.xscale('log')
+    plt.xlim(1, 9)
+    plt.ylim(-np.pi, np.pi)
     fig.savefig(Path(out_path, F"{frame_idx:06d}.png"))
     plt.close()
