@@ -74,28 +74,11 @@ for frame_idx, alpha in enumerate(tqdm(alphas)):
     batch = points.reshape(2, -1, 512)
     _alpha = np.full((2, batch.shape[1]), alpha)
 
-    #f = get_function(alpha)
-    #coords[:] = f(batch, _alpha).reshape(n_points * steps, 2)
     hist = f2(batch, _alpha).sum(axis=0)
-
-    #hist = np.histogram2d(
-    #    coords[:,1],
-    #    coords[:,0],
-    #    bins=(3840, 2160),
-    #    range=[[2, 8], [-np.pi, np.pi]]
-    #)[0]
     hist = np.flipud(hist.T)
-    #hist = gaussian_filter(hist, sigma=blur_sigma)
-    #hist = np.tanh(np.log(blurred + 1))
     
-    #hist = np.tanh(hist)
-    #hist = gaussian_filter(hist, sigma=blur_sigma)
-
     blurred = gaussian_filter(hist, sigma=blur_sigma)
-    #zero_mask = hist == 0
-    #hist[zero_mask] = blurred[zero_mask]
     hist = np.maximum(hist, blurred)
-    #hist = np.tanh(hist)
     hist = np.tanh(np.log(hist + 1) / np.log(log_base))
 
     hist = plt.cm.inferno(norm01(hist))
@@ -111,14 +94,7 @@ for frame_idx, alpha in enumerate(tqdm(alphas)):
     mpl.rcParams['savefig.facecolor'] = 'black'
     fig, ax = plt.subplots(figsize=(32, 18))
     plt.imshow(hist, aspect='auto', extent=[2, 8, -np.pi, np.pi])
-    #c = np.linspace(0,1, steps)
-    #for i in range(n_points):
-    #    plt.scatter(
-    #        coords[i,:,1],
-    #        coords[i,:,0],
-    #        s=.1,
-    #        c=c
-    #    )
+    
     out_path = Path(F"/code/output/residual_param/layer{layer}/")
     out_path.mkdir(exist_ok=True, parents=True)
     plt.xlabel("Magnitude (2-Norm)")
