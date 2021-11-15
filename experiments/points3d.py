@@ -54,7 +54,7 @@ out_path.mkdir(exist_ok=True)
 
 f = pmap(vmap(jit(loop_fn)))
 
-all_coords = np.zeros((n_points * repeats, steps, 3))
+all_coords = np.zeros((n_points * repeats, steps, 3), dtype=np.float32)
 
 key = mlp.prng_key
 for r_idx in tqdm(range(repeats)):
